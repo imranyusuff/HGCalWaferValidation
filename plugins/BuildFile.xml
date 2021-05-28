@@ -1,0 +1,7 @@
+<use name="DetectorDescription/Core"/>
+<use name="FWCore/Framework"/>
+<use name="FWCore/ParameterSet"/>
+<use name="FWCore/PluginManager"/>
+<use name="Geometry/Records"/>
+<use name="Geometry/HGCalCommonData"/>
+<flags EDM_PLUGIN="1"/>
