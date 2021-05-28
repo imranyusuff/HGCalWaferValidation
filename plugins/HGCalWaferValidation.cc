@@ -266,8 +266,8 @@ void HGCalWaferValidation::analyze(const edm::Event& iEvent, const edm::EventSet
     const double waferX(std::stod(tokens[3]));
     const double waferY(std::stod(tokens[4]));
     // TODO rotation check
-    const int waferU(std::stod(tokens[6]));
-    const int waferV(std::stod(tokens[7]));
+    const int waferU(std::stoi(tokens[6]));
+    const int waferV(std::stoi(tokens[7]));
 
     const WaferCoord waferCoord(waferLayer, waferU, waferV);
 
