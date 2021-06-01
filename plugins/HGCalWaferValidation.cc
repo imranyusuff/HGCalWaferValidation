@@ -176,14 +176,15 @@ void HGCalWaferValidation::analyze(const edm::Event& iEvent, const edm::EventSet
 
   if (!viewH.isValid()) {
     std::cout << "Error obtaining geometry handle!" << std::endl;
+    return;
   }
 
   std::cout << "Root is : " << viewH->root() << std::endl;
   std::cout << std::endl;
 
   auto eeWalker = viewH->walker();
-  const bool eefound = DDFindHGCal(eeWalker, "HGCalEE");
-  if (eefound) {
+  const bool eeFound = DDFindHGCal(eeWalker, "HGCalEE");
+  if (eeFound) {
     std::cout << "HGCalEE found!" << std::endl;
     std::cout << "name     = " << eeWalker.current().first.name().name() << std::endl;
     std::cout << "fullname = " << eeWalker.current().first.name().fullname() << std::endl;
@@ -194,8 +195,8 @@ void HGCalWaferValidation::analyze(const edm::Event& iEvent, const edm::EventSet
   std::cout << std::endl;
 
   auto hesilWalker = viewH->walker();
-  const bool hesilfound = DDFindHGCal(hesilWalker, "HGCalHEsil");
-  if (hesilfound) {
+  const bool hesilFound = DDFindHGCal(hesilWalker, "HGCalHEsil");
+  if (hesilFound) {
     std::cout << "HGCalHEsil found!" << std::endl;
     std::cout << "name     = " << hesilWalker.current().first.name().name() << std::endl;
     std::cout << "fullname = " << hesilWalker.current().first.name().fullname() << std::endl;
@@ -206,8 +207,8 @@ void HGCalWaferValidation::analyze(const edm::Event& iEvent, const edm::EventSet
   std::cout << std::endl;
 
   auto hemixWalker = viewH->walker();
-  const bool hemixfound = DDFindHGCal(hemixWalker, "HGCalHEmix");
-  if (hemixfound) {
+  const bool hemixFound = DDFindHGCal(hemixWalker, "HGCalHEmix");
+  if (hemixFound) {
     std::cout << "HGCalHEmix found!" << std::endl;
     std::cout << "name     = " << hemixWalker.current().first.name().name() << std::endl;
     std::cout << "fullname = " << hemixWalker.current().first.name().fullname() << std::endl;
@@ -216,6 +217,11 @@ void HGCalWaferValidation::analyze(const edm::Event& iEvent, const edm::EventSet
     std::cout << "HGCalHEmix not found!" << std::endl;
   }
   std::cout << std::endl;
+
+  if (!(eeFound || hesilFound || hemixFound)) {
+    std::cout << "Nothing found. Giving up." << std::endl;
+    return;
+  }
 
   // Now walk the HGCalEE walker to find the first wafer
   std::cout << "Calling DDFindWafers(eeWalker);" << std::endl;
