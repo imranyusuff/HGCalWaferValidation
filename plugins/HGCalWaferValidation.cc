@@ -337,7 +337,8 @@ void HGCalWaferValidation::analyze(const edm::Event& iEvent, const edm::EventSet
       std::cout << "SHAPE ERROR: " << strWaferCoord(waferCoord) << std::endl;
     }
 
-    if (waferInfo.rotCode != waferRotCode) {
+    if ((waferShapeCode != 'F' && waferInfo.rotCode != waferRotCode)
+        || (waferShapeCode == 'F' && (waferInfo.rotCode % 2 != waferRotCode % 2))) {
       nRotError++;
       std::cout << "ROTATION ERROR: " << strWaferCoord(waferCoord) << "  ( " << waferInfo.rotCode << " != " << waferRotCode << " )" << std::endl;
     }
