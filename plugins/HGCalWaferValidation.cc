@@ -34,6 +34,7 @@
 #include "Geometry/HGCalCommonData/interface/HGCalTypes.h"
 
 #include <fstream>
+#include <regex>
 
 //
 // class declaration
@@ -72,6 +73,8 @@ private:
     int thickClass;
     double x;
     double y;
+    std::string shapeCode;
+    int rotCode;
   };
 
   edm::ESGetToken<DDCompactView, IdealGeometryRecord> viewToken_;
@@ -152,6 +155,7 @@ void HGCalWaferValidation::ProcessWaferLayer(DDCompactView::GraphWalker & walker
   do {
     if (walker.current().first.name().fullname().rfind("hgcalwafer:", 0) == 0) {
       auto wafer = walker.current();
+      const std::string waferName(walker.current().first.name().fullname());
       const int copyNo = wafer.second->copyno();
       const int waferType = HGCalTypes::getUnpackedType(copyNo);
       const int waferU = HGCalTypes::getUnpackedU(copyNo);
@@ -161,11 +165,29 @@ void HGCalWaferValidation::ProcessWaferLayer(DDCompactView::GraphWalker & walker
       waferInfo.thickClass = waferType;
       waferInfo.x = wafer.second->translation().x();
       waferInfo.y = wafer.second->translation().y();
+      const std::string waferNameData =
+        std::regex_replace(waferName,
+                           std::regex("(HGCal[EH]E)(Wafer[01])(Fine|Coarse[12])([a-z]*)([0-9]*)"),
+                           "$1 $2-$3 $4 $5",
+                           std::regex_constants::format_no_copy);
+      std::stringstream ss(waferNameData);
+      std::string EEorHE;
+      std::string typeStr;
+      std::string shapeStr;
+      std::string rotStr;
+      ss >> EEorHE >> typeStr >> shapeStr >> rotStr;
+      if (shapeStr == "")
+        shapeStr = "F";
+      if (rotStr == "")
+        rotStr = "0";
+      const int rotCode(std::stoi(rotStr));
+      //std::cout << "rotStr " << rotStr << " rotCode " << rotCode << std::endl;
+      waferInfo.shapeCode = shapeStr;
+      waferInfo.rotCode = rotCode;
       waferData[waferCoord] = waferInfo;
       waferValidated[waferCoord] = false;
     }
   } while (walker.nextSibling());
-  //layerWaferCounts.push_back(c);
 }
 
 // ------------ method called for each event  ------------
@@ -248,11 +270,16 @@ void HGCalWaferValidation::analyze(const edm::Event& iEvent, const edm::EventSet
     return;
   }
 
+  // total processed counter
+  int nTotalProcessed = 0;
+
   // geometry error counters
   int nMissing = 0;
   int nThicknessError = 0;
   int nPosXError = 0;
   int nPosYError = 0;
+  int nShapeError = 0;
+  int nRotError = 0;
   int nUnaccounted = 0;
 
   std::string buf;
@@ -266,12 +293,14 @@ void HGCalWaferValidation::analyze(const edm::Event& iEvent, const edm::EventSet
     if (tokens.size() != 8)
       continue;
 
+    nTotalProcessed++;
+
     const int waferLayer(std::stoi(tokens[0]));
-    // TODO shape check
+    const std::string waferShapeCode(tokens[1]);
     const int waferThickness(std::stoi(tokens[2]));
     const double waferX(std::stod(tokens[3]));
     const double waferY(std::stod(tokens[4]));
-    // TODO rotation check
+    const int waferRotCode(std::stoi(tokens[5]));
     const int waferU(std::stoi(tokens[6]));
     const int waferV(std::stoi(tokens[7]));
 
@@ -302,6 +331,16 @@ void HGCalWaferValidation::analyze(const edm::Event& iEvent, const edm::EventSet
       nPosYError++;
       std::cout << "POSITION y ERROR: " << strWaferCoord(waferCoord) << std::endl;
     }
+
+    if (waferInfo.shapeCode != waferShapeCode) {
+      nShapeError++;
+      std::cout << "SHAPE ERROR: " << strWaferCoord(waferCoord) << std::endl;
+    }
+
+    if (waferInfo.rotCode != waferRotCode) {
+      nRotError++;
+      std::cout << "ROTATION ERROR: " << strWaferCoord(waferCoord) << "  ( " << waferInfo.rotCode << " != " << waferRotCode << " )" << std::endl;
+    }
   }
 
   geoTxtFile.close();
@@ -321,7 +360,11 @@ void HGCalWaferValidation::analyze(const edm::Event& iEvent, const edm::EventSet
   std::cout << "Thickness error :  " << nThicknessError << std::endl;
   std::cout << "Pos-x error     :  " << nPosXError << std::endl;
   std::cout << "Pos-y error     :  " << nPosYError << std::endl;
+  std::cout << "Shape error     :  " << nShapeError << std::endl;
+  std::cout << "Rotation error  :  " << nRotError << std::endl;
   std::cout << "Unaccounted     :  " << nUnaccounted << std::endl;
+  std::cout << std::endl;
+  std::cout << "Total wafers processed from geotxtfile = " << nTotalProcessed << std::endl;
   std::cout << std::endl;
 }
 
