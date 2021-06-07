@@ -5,10 +5,17 @@
 //
 /**\class HGCalWaferValidation HGCalWaferValidation.cc UserCode/HGCalWaferValidation/plugins/HGCalWaferValidation.cc
 
- Description: [one line class summary]
+ Description: Validates HGCal wafer data inside DD against specifications given in a flat text file.
 
  Implementation:
-     [Notes on implementation]
+     * Uses GraphWalker to follow DD hierarchy to find HGCal EE module and the HE modules.
+     * Search of wafer layers and iterates each wafer found.
+     * Extract x, y coordinate position from wafer positioning; thickness, u & v coords from copyNo.
+       Wafer shape and rotation are extracted from given names of wafer logical volumes.
+     * All extracted wafer info saved into a map indexed by (layer#, u, v).
+     * Each line in flat text file are compared against wafer information in the map.
+       Any errors are reported, counted and summarized at the end.
+     * Unaccounted wafers, which are in DD but not in the flat text file, are also reported and counted.
 */
 //
 // Original Author:  Imran Yusuff
