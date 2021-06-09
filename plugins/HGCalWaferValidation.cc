@@ -351,12 +351,13 @@ void HGCalWaferValidation::analyze(const edm::Event& iEvent, const edm::EventSet
       std::cout << "THICKNESS ERROR: " << strWaferCoord(waferCoord) << std::endl;
     }
 
-    if (fabs(-waferInfo.x - waferX) > 0.015) {
+    // it seems that wafer x-coords relative to their layer plane are mirrored...
+    if (fabs(-waferInfo.x - waferX) > 0.015) {       // assuming this much tolerance
       nPosXError++;
       std::cout << "POSITION x ERROR: " << strWaferCoord(waferCoord) << std::endl;
     }
 
-    if (fabs(waferInfo.y - waferY) > 0.015) {
+    if (fabs(waferInfo.y - waferY) > 0.015) {        // assuming this much tolerance
       nPosYError++;
       std::cout << "POSITION y ERROR: " << strWaferCoord(waferCoord) << std::endl;
     }
